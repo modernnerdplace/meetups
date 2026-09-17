@@ -1,0 +1,49 @@
+# Typecheck and build on every push to main and on pull requests.
+#
+# No database here. `prisma generate` only reads prisma/schema.prisma, and
+# migrations belong on the host that owns the data, not in CI. DATABASE_URL is
+# set to a valid but unreachable URL because Prisma Client refuses to construct
+# without one.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck and build
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci?schema=public
+      NEXT_PUBLIC_SITE_URL: https://modernnerdplace.nl
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      # Before the typecheck: without a generated client, tsc does not know the
+      # Prisma types and every query is an error.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build

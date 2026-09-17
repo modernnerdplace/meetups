@@ -1,0 +1,62 @@
+# Local stack: the app plus its database.
+#
+#   docker compose up -d --build
+#
+# Day to day you probably only want the database and run Next.js on the host
+# with `npm run dev`:
+#
+#   docker compose up -d postgres
+#
+# Values come from .env in this directory (compose reads it automatically).
+# See .env.example for the full list.
+
+name: mnp-meetups
+
+services:
+  postgres:
+    image: postgres:16.15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mnp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mnp_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-mnp}
+    # Bound to localhost so `npm run dev` on the host can reach it, but the
+    # database is never exposed to the LAN.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mnp} -d ${POSTGRES_DB:-mnp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    restart: unless-stopped
+    # The container runs `prisma migrate deploy` on startup, so it must not
+    # start before Postgres accepts connections.
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-mnp}:${POSTGRES_PASSWORD:-mnp_dev}@postgres:5432/${POSTGRES_DB:-mnp}?schema=public"
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-Modern Nerdplace <hello@modernnerdplace.nl>}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+
+volumes:
+  pgdata:
+    driver: local

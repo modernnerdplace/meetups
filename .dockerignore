@@ -1,0 +1,39 @@
+# Keep the build context small and keep local state out of the image.
+
+node_modules
+.next
+out
+dist
+
+# Secrets and local-only state.
+.env
+.env.local
+.env.*.local
+*.log
+
+# VCS and CI.
+.git
+.gitignore
+.github
+
+# Docs and agent notes: not needed to run the app.
+docs
+AGENTS.md
+README.md
+
+# Editor / OS noise.
+.DS_Store
+.vscode
+.idea
+*.tsbuildinfo
+
+# The meetup.com export. The import script runs with tsx from a checkout, not
+# from the runtime image, so this only bloats the build context. See
+# docs/deploy.md if you need to run the import against the production database.
+data
+
+# Compose files themselves never belong in the image.
+docker-compose.yml
+docker-compose.prod.yml
+Dockerfile
+.dockerignore

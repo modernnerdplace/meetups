@@ -1,0 +1,88 @@
+# Production stack for one host: a Proxmox LXC with Docker, same shape as
+# SmartRust. Public traffic arrives over a Cloudflare tunnel that runs in this
+# same compose, so the host publishes no ports at all.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Cloudflare Zero Trust -> Networks -> Tunnels -> your tunnel -> Public
+# Hostname needs exactly one entry:
+#
+#   modernnerdplace.nl  ->  http://app:3000
+#
+# That is the compose service name, reachable because cloudflared sits on the
+# same compose network. No LAN IP to keep track of.
+#
+# Full walkthrough: docs/deploy.md
+
+name: mnp-meetups
+
+services:
+  postgres:
+    # Pinned on purpose. A floating 16-alpine silently moves under you on the
+    # next `docker compose pull`; bump this line when you want a new version.
+    image: postgres:16.15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    # No published port. Only `app` reaches it, over the compose network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    # Pinned tag, set APP_TAG in .env to the release or commit you are running.
+    # Compose builds this image locally with --build and tags it as below, so a
+    # `git pull && docker compose ... up -d --build` deploy still works without
+    # a registry. Bump APP_TAG on every deploy so you can tell versions apart
+    # and roll back to the previous tag.
+    image: ${APP_IMAGE:-mnp-meetups}:${APP_TAG:?set APP_TAG in .env}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Baked into the browser bundle, so it must be the real public URL.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?set NEXT_PUBLIC_SITE_URL in .env}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+      # Discord OAuth. Redirect URI to register:
+      #   ${NEXT_PUBLIC_SITE_URL}/api/auth/discord/callback
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      # Mail for login codes and confirmations. Unset means no mail goes out.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-Modern Nerdplace <hello@modernnerdplace.nl>}
+    # No published port either: cloudflared reaches the app at app:3000.
+    # Uncomment for local debugging on the box, bound to loopback only.
+    # ports:
+    #   - "127.0.0.1:3000:3000"
+
+  cloudflared:
+    # Pinned as well, for the same reason as postgres.
+    image: cloudflare/cloudflared:2026.9.1
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    command: tunnel --no-autoupdate run
+    environment:
+      # Zero Trust -> Networks -> Tunnels -> your tunnel -> Install connector,
+      # copy the value behind --token.
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in .env}
+
+volumes:
+  postgres-data:
+    driver: local
