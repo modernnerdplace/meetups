@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink-900 text-paper antialiased;
+    background-image:
+      radial-gradient(60rem 40rem at 78% -10%, rgba(34, 193, 232, 0.08), transparent 60%),
+      radial-gradient(48rem 34rem at 6% 0%, rgba(242, 68, 15, 0.08), transparent 55%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(242, 68, 15, 0.35);
+    color: #fff;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-trace ring-offset-2 ring-offset-ink-900;
+  }
+}
+
+@layer components {
+  /* Dun printbaanlijntje, zoals de sporen in het logo. */
+  .hairline {
+    @apply border-t border-ink-700;
+  }
+
+  .kicker {
+    @apply font-mono text-xs uppercase tracking-[0.2em] text-paper-faint;
+  }
+
+  .link-underline {
+    @apply underline decoration-ink-600 underline-offset-4 transition-colors hover:decoration-rocket-400;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 font-display text-sm font-bold uppercase tracking-wider transition-colors;
+  }
+
+  .btn-primary {
+    @apply btn bg-rocket text-white hover:bg-rocket-400;
+  }
+
+  .btn-ghost {
+    @apply btn border border-ink-600 text-paper hover:border-trace hover:text-trace-300;
+  }
+
+  .panel {
+    @apply rounded-lg border border-ink-700 bg-ink-850/70;
+  }
+
+  .field {
+    @apply w-full rounded-md border border-ink-600 bg-ink-900 px-3 py-2.5 text-paper placeholder:text-paper-faint focus:border-trace;
+  }
+}
+
+/* Markdown-uitvoer. Bewust smal gehouden: koppen, tekst, lijsten, code. */
+.prose-nerd {
+  @apply text-[1.0625rem] leading-relaxed text-paper/90;
+}
+.prose-nerd > * + * {
+  @apply mt-4;
+}
+.prose-nerd h1,
+.prose-nerd h2,
+.prose-nerd h3,
+.prose-nerd h4 {
+  @apply mt-8 font-display font-bold text-paper;
+}
+.prose-nerd h1 {
+  @apply text-2xl;
+}
+.prose-nerd h2 {
+  @apply text-xl;
+}
+.prose-nerd h3 {
+  @apply text-lg;
+}
+.prose-nerd a {
+  @apply text-trace-300 underline decoration-trace/40 underline-offset-4 hover:decoration-trace;
+}
+.prose-nerd strong {
+  @apply font-semibold text-paper;
+}
+.prose-nerd ul {
+  @apply list-disc space-y-1.5 pl-5 marker:text-rocket-400;
+}
+.prose-nerd ol {
+  @apply list-decimal space-y-1.5 pl-5 marker:text-rocket-400;
+}
+.prose-nerd blockquote {
+  @apply border-l-2 border-rocket/60 pl-4 italic text-paper-muted;
+}
+.prose-nerd code {
+  @apply rounded bg-ink-800 px-1.5 py-0.5 font-mono text-[0.9em] text-trace-300;
+}
+.prose-nerd pre {
+  @apply overflow-x-auto rounded-md border border-ink-700 bg-ink-950 p-4;
+}
+.prose-nerd pre code {
+  @apply bg-transparent p-0 text-paper/90;
+}
+.prose-nerd hr {
+  @apply border-ink-700;
+}
+.prose-nerd img {
+  @apply rounded-md;
+}
