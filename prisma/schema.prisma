@@ -1,0 +1,167 @@
+// Modern Nerdplace meetup platform.
+// Postgres + Prisma. Dit schema is het contract tussen de onderdelen: wijzig het
+// alleen in overleg, want de import, de aanmeldingen en de publieke pagina's
+// leunen er alle drie op.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+enum RsvpStatus {
+  GOING
+  WAITLIST
+  CANCELLED
+}
+
+enum MemberRole {
+  MEMBER
+  ORGANISER
+}
+
+/// Iemand die zich aanmeldt. Kan inloggen via Discord of via een e-mailcode.
+model Member {
+  id           String     @id @default(cuid())
+  email        String?    @unique
+  emailVerified DateTime?
+  discordId    String?    @unique
+  name         String
+  avatarUrl    String?
+  company      String?
+  role         MemberRole @default(MEMBER)
+  /// Vrij tekstveld, alleen zichtbaar voor organisatoren. Denk aan allergieen.
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  rsvps    Rsvp[]
+  sessions AuthSession[]
+  speaker  Speaker?
+}
+
+/// Ingelogde sessie. Cookie bevat alleen het token, nooit het lid-id.
+model AuthSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([memberId])
+}
+
+/// Eenmalige inlogcode per e-mail.
+model LoginToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  /// Een zin voor in het overzicht.
+  summary     String?
+  /// Markdown.
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  status      EventStatus @default(DRAFT)
+
+  venueName    String?
+  venueAddress String?
+  venueUrl     String?
+  /// Maximaal aantal plekken. Leeg betekent geen limiet en dus geen wachtlijst.
+  capacity     Int?
+
+  coverImageUrl String?
+  recordingUrl  String?
+
+  /// Gevuld bij events die uit meetup.com zijn overgenomen.
+  meetupComUrl     String?  @unique
+  /// Opkomst zoals meetup.com die toonde. Alleen voor geimporteerde events:
+  /// voor eigen events tel je de check-ins.
+  importedAttendees Int?
+  importedAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  talks Talk[]
+  rsvps Rsvp[]
+
+  @@index([startsAt])
+  @@index([status, startsAt])
+}
+
+/// Een praatje binnen een meetup.
+model Talk {
+  id        String  @id @default(cuid())
+  eventId   String
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  title     String
+  abstract  String?
+  slidesUrl String?
+  recordingUrl String?
+  /// Volgorde in het programma.
+  position  Int     @default(0)
+
+  speakerId String?
+  speaker   Speaker? @relation(fields: [speakerId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+}
+
+/// Een spreker heeft een eigen pagina. Hoeft geen account te hebben.
+model Speaker {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  name      String
+  bio       String?
+  avatarUrl String?
+  /// {"linkedin": "...", "website": "...", "mastodon": "..."}
+  links     Json?
+
+  memberId String? @unique
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  talks Talk[]
+}
+
+model Rsvp {
+  id       String     @id @default(cuid())
+  eventId  String
+  event    Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  memberId String
+  member   Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status   RsvpStatus @default(GOING)
+
+  /// Positie op de wachtlijst. Leeg zolang iemand niet op de wachtlijst staat.
+  waitlistPosition Int?
+  checkedInAt      DateTime?
+  /// Wat het lid bij aanmelding invulde, bijvoorbeeld een dieetwens.
+  note             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, memberId])
+  @@index([eventId, status])
+}
