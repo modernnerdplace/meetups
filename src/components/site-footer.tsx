@@ -25,9 +25,11 @@ export function SiteFooter() {
           <a href={site.discordUrl} className="hover:text-paper" rel="noopener noreferrer">
             Discord
           </a>
-          <a href={`mailto:${site.email}`} className="hover:text-paper">
-            {site.email}
-          </a>
+          {site.email ? (
+            <a href={`mailto:${site.email}`} className="hover:text-paper">
+              {site.email}
+            </a>
+          ) : null}
         </div>
       </Container>
     </footer>
