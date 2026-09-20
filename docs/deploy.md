@@ -172,10 +172,12 @@ curl -sI https://modernnerdplace.nl
 If `app` stays `(starting)` for more than a minute, read its log. The usual
 cause is a migration that cannot apply, not the web server.
 
-## 7. Make yourself organiser
+## 7. Make yourself admin
 
-There is no admin bootstrap screen. The `Member.role` column decides who is an
-organiser, and the row only exists once you have logged in.
+The `Member.role` column decides who gets into `/admin`: `ORGANISER` runs events
+and check-in, `ADMIN` can also change roles and delete events. The first admin
+has to be set by hand, and the row only exists once you have logged in. After
+that, give other people a role from `/admin/members`.
 
 1. Open `https://modernnerdplace.nl` and log in once, by Discord or by email
    code. That creates your `Member` row.
@@ -186,7 +188,7 @@ cd /opt/meetups
 source .env
 docker compose -f docker-compose.prod.yml exec -T postgres \
   psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-  -c "UPDATE \"Member\" SET role = 'ORGANISER' WHERE email = 'fabio@vdburg.it';"
+  -c "UPDATE \"Member\" SET role = 'ADMIN' WHERE email = 'fabio@vdburg.it';"
 ```
 
 It should print `UPDATE 1`. If it prints `UPDATE 0` the email does not match;

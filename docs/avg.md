@@ -19,7 +19,10 @@ Taken from `prisma/schema.prisma`, which is the source of truth.
 | `Member` | `avatarUrl` | Link to a profile picture | Shown next to the name, usually comes from Discord |
 | `Member` | `company` | Employer, optional | Who is in the room, useful for the host |
 | `Member` | `notes` | Free text, organisers only | Standing remarks about a person, for example an allergy |
-| `Member` | `role` | `MEMBER` or `ORGANISER` | Decides who sees the organiser views |
+| `Member` | `role` | `MEMBER`, `ORGANISER` or `ADMIN` | Decides who gets into `/admin`; only `ADMIN` sees email addresses there |
+| `Member` | `username`, `bio`, `jobTitle`, links, `isMvp`, `isMct`, `interests` | Profile the member fills in themselves | Shown on `/nerds` only when `profilePublic` is on; the member chooses that and can switch it off at any time. Email is never shown |
+| `Member` | `profilePublic`, `profilePublicAt` | The member's choice and when they made it | Consent record for the public profile |
+| `AuditLog` | `actorId`, `action`, `summary`, `data` | Who changed what in `/admin` | Accountability for organiser actions. `summary` contains member names; `data` only ids, never email addresses or notes |
 | `AuthSession` | `token`, `expiresAt` | Session token | Keeps someone logged in |
 | `LoginToken` | `email`, `token`, `expiresAt`, `usedAt` | One time login code | Logging in by email |
 | `Rsvp` | `status`, `waitlistPosition` | Signed up, waitlist, cancelled | Seat count and waitlist |
@@ -86,9 +89,12 @@ That is the largest open item on this page.
    behalf. Check whether you need a processing agreement with each of them, and
    whether the data leaves the EU. Cloudflare and most mail providers publish a
    standard agreement.
-7. **Who is an organiser.** Organisers see the note fields, so the `ORGANISER`
-   role is the real access control. Keep the list short and review it once a
-   year.
+7. **Who is an organiser.** Organisers and admins see the note fields, so those
+   roles are the real access control. Keep the list short and review it once a
+   year in `/admin/members`. Email addresses are only shown to `ADMIN`.
+   The audit log keeps member names in its `summary` text, also after an
+   account is deleted. Decide how long to keep it (for example two years) and
+   whether a deletion request should also scrub the names from it.
 8. **What goes public.** Decide whether attendee names are visible to everyone,
    only to people who are signed up, or only to organisers. Speaker pages are
    public by design; an attendee list is a different question.

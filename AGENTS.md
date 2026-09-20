@@ -25,6 +25,7 @@ Er werken meerdere agents tegelijk in deze repo. Blijf binnen je eigen paden.
 | Aanmeldingen, inloggen, wachtlijst | `src/lib/**`, `src/app/api/**`, `src/app/(auth)/**` |
 | Publieke pagina's | `src/app/(public)/**`, `src/components/**`, `src/app/globals.css` |
 | Deploy en infra | `Dockerfile`, `docker-compose*.yml`, `.github/**`, `docs/**` |
+| Beheer (admin, check-in, auditlog) | `src/app/admin/**`, `src/lib/admin/**`, `src/lib/audit.ts`, `src/lib/time.ts` |
 
 `src/app/layout.tsx`, `package.json` en `prisma/schema.prisma` zijn gedeeld: raak ze alleen
 aan als het echt moet, en zeg het in je rapport.
