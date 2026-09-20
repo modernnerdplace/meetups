@@ -13,7 +13,10 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
-    "import:meetup": "tsx scripts/import-meetup-history.ts"
+    "import:meetup": "tsx scripts/import-meetup-history.ts",
+    "check:waitlist": "tsx src/lib/__checks__/waitlist.ts",
+    "check:admin": "tsx src/lib/__checks__/admin.ts",
+    "check:profile": "tsx src/lib/__checks__/profile.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

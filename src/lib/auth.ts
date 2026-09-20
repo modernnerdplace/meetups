@@ -23,14 +23,27 @@ export async function requireMember(): Promise<Member> {
   return member;
 }
 
+/** Organisatoren en admins mogen het beheer in. De rol komt altijd uit de
+ *  database via de sessie, nooit uit iets wat de browser meestuurt. */
 export function isOrganiser(member: Member | null): boolean {
-  return member?.role === MemberRole.ORGANISER;
+  return member?.role === MemberRole.ORGANISER || member?.role === MemberRole.ADMIN;
+}
+
+export function isAdmin(member: Member | null): boolean {
+  return member?.role === MemberRole.ADMIN;
 }
 
 /** Dwingt af dat er een organisator ingelogd is. Gooit 401 of 403. */
 export async function requireOrganiser(): Promise<Member> {
   const member = await requireMember();
   if (!isOrganiser(member)) throw forbidden();
+  return member;
+}
+
+/** Alleen admins: rollen wijzigen en events verwijderen. */
+export async function requireAdmin(): Promise<Member> {
+  const member = await requireMember();
+  if (!isAdmin(member)) throw forbidden("Admins only.");
   return member;
 }
 

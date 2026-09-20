@@ -32,7 +32,7 @@ export type RsvpState = {
 
 export type LeaveResult = RsvpState & { promotedMemberIds: string[] };
 
-type Tx = Prisma.TransactionClient;
+export type Tx = Prisma.TransactionClient;
 
 const SERIALIZABLE = {
   isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -43,7 +43,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Serializable transacties kunnen afgebroken worden als twee aanmeldingen elkaar
  *  raken. Dat is precies de bedoeling: we proberen het dan opnieuw. */
-async function inSerializableTransaction<T>(
+export async function inSerializableTransaction<T>(
   run: (tx: Tx) => Promise<T>,
   attempts = 5,
 ): Promise<T> {
@@ -106,7 +106,7 @@ function assertOpen(event: { status: EventStatus; startsAt: Date }) {
 }
 
 /** Zet de wachtlijst weer op 1, 2, 3 ... in de volgorde waarin mensen erop kwamen. */
-async function renumberWaitlist(tx: Tx, eventId: string): Promise<void> {
+export async function renumberWaitlist(tx: Tx, eventId: string): Promise<void> {
   const waiting = await tx.rsvp.findMany({
     where: { eventId, status: RsvpStatus.WAITLIST },
     orderBy: [{ waitlistPosition: "asc" }, { createdAt: "asc" }],
@@ -121,7 +121,7 @@ async function renumberWaitlist(tx: Tx, eventId: string): Promise<void> {
 }
 
 /** Schuift zoveel mensen van de wachtlijst door als er plek is. */
-async function promoteFromWaitlist(
+export async function promoteFromWaitlist(
   tx: Tx,
   event: { id: string; capacity: number | null },
 ): Promise<string[]> {

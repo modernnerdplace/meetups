@@ -27,6 +27,8 @@ enum RsvpStatus {
 enum MemberRole {
   MEMBER
   ORGANISER
+  /// Organisator die ook rollen van anderen mag wijzigen en events mag verwijderen.
+  ADMIN
 }
 
 /// Iemand die zich aanmeldt. Kan inloggen via Discord of via een e-mailcode.
@@ -41,12 +43,31 @@ model Member {
   role         MemberRole @default(MEMBER)
   /// Vrij tekstveld, alleen zichtbaar voor organisatoren. Denk aan allergieen.
   notes        String?
+
+  // Profiel. Alleen zichtbaar op /nerds als profilePublic aan staat; het lid
+  // kiest dat zelf. E-mail staat nooit op een profiel.
+  /// Voor de url /nerds/<username>. Kleine letters, cijfers en streepjes.
+  username      String?   @unique
+  bio           String?
+  jobTitle      String?
+  websiteUrl    String?
+  linkedinUrl   String?
+  githubUrl     String?
+  isMvp         Boolean   @default(false)
+  isMct         Boolean   @default(false)
+  interests     String[]  @default([])
+  profilePublic Boolean   @default(false)
+  /// Moment waarop het lid koos om het profiel openbaar te maken.
+  profilePublicAt DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   rsvps    Rsvp[]
   sessions AuthSession[]
   speaker  Speaker?
+  auditLog AuditLog[]
+
+  @@index([profilePublic, name])
 }
 
 /// Ingelogde sessie. Cookie bevat alleen het token, nooit het lid-id.
@@ -164,4 +185,24 @@ model Rsvp {
 
   @@unique([eventId, memberId])
   @@index([eventId, status])
+}
+
+/// Wie deed wat in het beheer. Alleen voor organisatoren zichtbaar. `data` bevat
+/// nooit e-mailadressen of opmerkingen, alleen ids en de gewijzigde velden.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      Member?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  /// Bijvoorbeeld "event.create", "rsvp.cancel", "member.role".
+  action     String
+  entityType String
+  entityId   String?
+  /// Leesbare regel voor in het overzicht.
+  summary    String
+  data       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@index([actorId])
 }
