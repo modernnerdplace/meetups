@@ -27,13 +27,13 @@ export function LoginForm({ next }: { next: string }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error ?? "That did not work.");
+        setError(data.error ?? "Dat lukte niet.");
         return;
       }
-      setMessage(data.message ?? "Check your inbox.");
+      setMessage(data.message ?? "Kijk in je mail.");
       setStep("code");
     } catch {
-      setError("Could not reach the server.");
+      setError("De server is niet bereikbaar.");
     } finally {
       setBusy(false);
     }
@@ -51,29 +51,27 @@ export function LoginForm({ next }: { next: string }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error ?? "That code did not work.");
+        setError(data.error ?? "Die code werkt niet.");
         return;
       }
       router.push(data.redirect ?? "/");
       router.refresh();
     } catch {
-      setError("Could not reach the server.");
+      setError("De server is niet bereikbaar.");
     } finally {
       setBusy(false);
     }
   }
 
-  const inputClass =
-    "w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none";
-  const buttonClass =
-    "w-full rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50";
+  const inputClass = "field";
+  const buttonClass = "btn-primary w-full disabled:opacity-50";
 
   return (
     <div className="space-y-3">
       {step === "email" ? (
         <form onSubmit={requestCode} className="space-y-3">
           <label className="block text-sm font-medium" htmlFor="email">
-            Email address
+            E-mailadres
           </label>
           <input
             id="email"
@@ -84,16 +82,16 @@ export function LoginForm({ next }: { next: string }) {
             value={email}
             onChange={(changeEvent) => setEmail(changeEvent.target.value)}
             className={inputClass}
-            placeholder="you@example.com"
+            placeholder="jij@voorbeeld.nl"
           />
           <button type="submit" disabled={busy} className={buttonClass}>
-            {busy ? "Sending..." : "Send me a code"}
+            {busy ? "Versturen..." : "Stuur me een code"}
           </button>
         </form>
       ) : (
         <form onSubmit={submitCode} className="space-y-3">
           <label className="block text-sm font-medium" htmlFor="code">
-            Login code
+            Inlogcode
           </label>
           <input
             id="code"
@@ -107,7 +105,7 @@ export function LoginForm({ next }: { next: string }) {
             placeholder="XXXXXXXX"
           />
           <button type="submit" disabled={busy} className={buttonClass}>
-            {busy ? "Checking..." : "Sign in"}
+            {busy ? "Controleren..." : "Inloggen"}
           </button>
           <button
             type="button"
@@ -116,15 +114,15 @@ export function LoginForm({ next }: { next: string }) {
               setCode("");
               setError(null);
             }}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="btn-ghost w-full"
           >
-            Use another address
+            Ander adres gebruiken
           </button>
         </form>
       )}
 
-      {message ? <p className="text-sm text-gray-600">{message}</p> : null}
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {message ? <p className="text-sm text-paper-muted">{message}</p> : null}
+      {error ? <p role="alert" className="text-sm text-rocket-300">{error}</p> : null}
     </div>
   );
 }
