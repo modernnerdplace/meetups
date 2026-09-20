@@ -10,8 +10,8 @@ export function SiteFooter() {
         <div className="max-w-sm space-y-2">
           <p className="font-display font-bold text-paper">{site.name}</p>
           <p>
-            Een meetup in {site.city} voor iedereen die met IT werkt. Kom langs, praat mee, of geef
-            zelf een keer een praatje.
+            De user group voor IT-liefhebbers en MSP's in {site.region}. Kom langs, praat mee, of
+            geef zelf een keer een praatje.
           </p>
         </div>
 
@@ -21,6 +21,9 @@ export function SiteFooter() {
           </Link>
           <Link href="/archive" className="hover:text-paper">
             Archief
+          </Link>
+          <Link href="/nerds" className="hover:text-paper">
+            Nerds
           </Link>
           <a href={site.discordUrl} className="hover:text-paper" rel="noopener noreferrer">
             Discord

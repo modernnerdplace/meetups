@@ -1,7 +1,7 @@
 export const site = {
   name: "Modern Nerdplace",
-  tagline: "Meetups voor IT'ers uit Breda en omstreken",
-  city: "Breda",
+  tagline: "User group voor IT'ers en MSP's in Nederland",
+  region: "Nederland",
   discordUrl: "https://discord.gg/99HTc9JBca",
   meetupUrl: "https://www.meetup.com/modern-nerdplace/",
   // Nog in te vullen door Fabio: het adres waarop de community mail leest.

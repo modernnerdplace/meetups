@@ -12,12 +12,12 @@ import { EventPoster } from "@/components/event-poster";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `${site.name}, meetups in ${site.city}`,
+  title: `${site.name}, user group voor IT'ers en MSP's`,
   description:
-    "Modern Nerdplace is een meetup in Breda voor iedereen die met IT werkt. Twee of drie praatjes, pizza, en daarna napraten.",
+    "Modern Nerdplace is de user group voor IT-liefhebbers en Managed Service Providers in Nederland. Meetups, online sessies en blogs.",
   openGraph: {
-    title: `${site.name}, meetups in ${site.city}`,
-    description: "Een meetup in Breda voor iedereen die met IT werkt.",
+    title: `${site.name}, user group voor IT'ers en MSP's`,
+    description: "De user group voor IT-liefhebbers en MSP's in Nederland.",
     url: "/",
   },
   alternates: { canonical: "/" },
@@ -36,20 +36,21 @@ export default async function HomePage() {
         <div className="grid items-center gap-10 sm:gap-14 md:grid-cols-[1fr_auto]">
           <div className="max-w-2xl">
             <Kicker>
-              Meetup in {site.city}
+              User group / {site.region}
               {firstEvent ? ` / sinds ${amsterdamYear(firstEvent)}` : null}
             </Kicker>
             <h1 className="mt-4 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-              Nerds uit {site.city} die te lang over werk praten.
+              Nerds die te lang over werk praten.
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-paper-muted">
-              Modern Nerdplace is een avond voor iedereen die met IT werkt. Beheerders, developers,
-              security, en mensen die er net bij komen kijken. Twee of drie praatjes over wat er
-              echt gebeurt in het veld, daarna pizza en napraten tot iemand de lichten uitdoet.
+              Modern Nerdplace is de user group voor IT-liefhebbers en Managed Service Providers,
+              overal uit Nederland. We organiseren meetups, online sessies en schrijven blogs over
+              wat er echt gebeurt in het veld. Beheerders, developers, security, en mensen die er
+              net bij komen kijken.
             </p>
             <p className="mt-4 text-lg leading-relaxed text-paper-muted">
-              Gratis, geen verkooppraatjes, en je hoeft niks te weten om mee te doen. Wil je zelf
-              een keer iets vertellen? Zeg het op{" "}
+              Gratis, geen verkooppraatjes, en je hoeft niks te weten om mee te doen. Get ready to
+              nerd out. Wil je zelf een keer iets vertellen? Zeg het op{" "}
               <a href={site.discordUrl} className="link-underline" rel="noopener noreferrer">
                 Discord
               </a>

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: site.name,
     template: `%s | ${site.name}`,
   },
-  description: `${site.tagline}. Elke paar maanden praatjes, pizza en veel te lang napraten.`,
+  description: `${site.tagline}. Meetups, online sessies en blogs. Get ready to nerd out.`,
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",

@@ -24,7 +24,7 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Modern Nerdplace",
-  description: "Meetups voor IT'ers en MSP's in Breda en omstreken.",
+  description: "User group voor IT'ers en MSP's in Nederland.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
