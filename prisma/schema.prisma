@@ -106,9 +106,13 @@ model Event {
   endsAt      DateTime?
   status      EventStatus @default(DRAFT)
 
+  /// Losse locatietekst. Blijft bestaan voor geimporteerde events; voor eigen
+  /// events kies je liever een Venue, die vult dit dan aan.
   venueName    String?
   venueAddress String?
   venueUrl     String?
+  venueId      String?
+  venue        Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
   /// Maximaal aantal plekken. Leeg betekent geen limiet en dus geen wachtlijst.
   capacity     Int?
 
@@ -125,29 +129,50 @@ model Event {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  talks Talk[]
-  rsvps Rsvp[]
+  sessions EventSession[]
+  sponsors EventSponsor[]
+  rsvps    Rsvp[]
 
   @@index([startsAt])
   @@index([status, startsAt])
+  @@index([venueId])
 }
 
-/// Een praatje binnen een meetup.
-model Talk {
+/// Een sessie in het programma van een meetup: een praatje, een workshop of de
+/// pauze. Sprekers hangen eraan via EventSessionSpeaker, want een sessie kan er
+/// meer dan een hebben.
+model EventSession {
   id        String  @id @default(cuid())
   eventId   String
   event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   title     String
   abstract  String?
+  /// Tijden zijn optioneel: niet elk programma heeft een klok.
+  startsAt  DateTime?
+  endsAt    DateTime?
+  /// Zaal of ruimte, bij een avond met twee tracks.
+  room      String?
   slidesUrl String?
   recordingUrl String?
-  /// Volgorde in het programma.
+  /// Volgorde in het programma, laag eerst.
   position  Int     @default(0)
 
-  speakerId String?
-  speaker   Speaker? @relation(fields: [speakerId], references: [id], onDelete: SetNull)
+  speakers EventSessionSpeaker[]
 
-  @@index([eventId])
+  @@index([eventId, position])
+}
+
+/// Koppeling tussen een sessie en een spreker, met de volgorde waarin ze
+/// genoemd worden.
+model EventSessionSpeaker {
+  sessionId String
+  session   EventSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  speakerId String
+  speaker   Speaker      @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+  position  Int          @default(0)
+
+  @@id([sessionId, speakerId])
+  @@index([speakerId])
 }
 
 /// Een spreker heeft een eigen pagina. Hoeft geen account te hebben.
@@ -163,7 +188,7 @@ model Speaker {
   memberId String? @unique
   member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
 
-  talks Talk[]
+  sessions EventSessionSpeaker[]
 }
 
 model Rsvp {
@@ -205,4 +230,51 @@ model AuditLog {
   @@index([createdAt])
   @@index([entityType, entityId])
   @@index([actorId])
+}
+
+/// Een locatie waar we te gast zijn. Losse tabel, zodat een adres maar op een
+/// plek staat en een terugkerende gastheer zijn eigen pagina houdt.
+model Venue {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  address   String?
+  city      String?
+  url       String?
+  /// Praktische notities voor organisatoren: parkeren, sleutels, contactpersoon.
+  /// Nooit publiek.
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[]
+}
+
+/// Een sponsor: betaalt de pizza, de zaal of de opnames.
+model Sponsor {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  /// Publieke url naar het logo. Zolang er geen media-opslag is, een link.
+  logoUrl     String?
+  url         String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events EventSponsor[]
+}
+
+/// Welke sponsor bij welk event hoort, met wat ze deden.
+model EventSponsor {
+  eventId   String
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sponsorId String
+  sponsor   Sponsor @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  /// Bijvoorbeeld "locatie", "pizza", "opnames".
+  role      String?
+  position  Int     @default(0)
+
+  @@id([eventId, sponsorId])
+  @@index([sponsorId])
 }

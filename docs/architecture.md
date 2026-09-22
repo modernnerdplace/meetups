@@ -21,7 +21,7 @@ on them and switching would only move working code around.
 | `src/app/api/**` | JSON routes: RSVP, iCal, check-in by slug, maintenance |
 | `src/app/admin/**` | Organiser area: dashboard, events, registrations, check-in, members, audit log |
 | `src/lib/**` | Domain logic. Pages and actions call into this, never into Prisma directly for writes |
-| `src/lib/admin/**` | Organiser operations on events, registrations and roles |
+| `src/lib/admin/**` | Organiser operations on events, registrations, roles and the programme |
 | `src/lib/__checks__/**` | Scripts that run the logic against the local database (`npm run check:*`) |
 
 ## Decisions
@@ -94,15 +94,21 @@ Done:
   attended meetups. Bios are plain text, not markdown, so members cannot embed
   images or links. LinkedIn and GitHub links must point at those domains.
 
+- Phase 4 (programme): `EventSession` replaces `Talk` and carries times, a room
+  and any number of speakers through `EventSessionSpeaker`. `Venue` and
+  `Sponsor` are their own tables, linked to an event by `Event.venueId` and
+  `EventSponsor`. Picking a venue copies its name, address and link onto the
+  event, so the public page keeps one source for what it shows and imported
+  events keep working. Organisers manage all of it from `/admin/speakers`,
+  `/admin/venues`, `/admin/sponsors` and the programme block on the event page.
+
 Next, in order:
 
-1. Sessions, sponsors and venues as their own tables (today: `Talk`, `Speaker`
-   and venue fields on `Event`).
-2. Blog with Markdown, and MinIO for avatars, event images and galleries.
-3. Mail templates for the six transactional mails, including waitlist promotion
+1. Blog with Markdown, and MinIO for avatars, event images and galleries.
+2. Mail templates for the six transactional mails, including waitlist promotion
    (the promotion logic already returns who moved up).
-4. Privacy: data export and account deletion from `/account`, audit log
+3. Privacy: data export and account deletion from `/account`, audit log
    retention.
-5. CSV import of historic events, alongside the existing meetup.com import.
+4. CSV import of historic events, alongside the existing meetup.com import.
 
 Login stays Discord plus email code; Microsoft/Entra is not planned.

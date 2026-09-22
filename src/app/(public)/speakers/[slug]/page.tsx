@@ -43,9 +43,10 @@ export default async function SpeakerPage({ params }: Props) {
   if (!speaker) notFound();
 
   const links = normaliseSpeakerLinks(speaker.links);
-  const talks = [...speaker.talks].sort(
-    (a, b) => b.event.startsAt.getTime() - a.event.startsAt.getTime(),
-  );
+  // Een spreker ziet zijn sessies, nieuwste eerst.
+  const talks = speaker.sessions
+    .map((entry) => entry.session)
+    .sort((a, b) => b.event.startsAt.getTime() - a.event.startsAt.getTime());
 
   return (
     <Container className="py-12 sm:py-16">
@@ -68,7 +69,7 @@ export default async function SpeakerPage({ params }: Props) {
             {speaker.name}
           </h1>
           <p className="mt-2 font-mono text-sm text-paper-faint">
-            {talks.length === 1 ? "1 praatje" : `${talks.length} praatjes`} bij Modern Nerdplace
+            {talks.length === 1 ? "1 sessie" : `${talks.length} sessies`} bij Modern Nerdplace
           </p>
 
           {links.length > 0 ? (
@@ -102,7 +103,7 @@ export default async function SpeakerPage({ params }: Props) {
           )}
 
           <section className="mt-14">
-            <h2 className="font-display text-2xl font-bold">Praatjes</h2>
+            <h2 className="font-display text-2xl font-bold">Sessies</h2>
             {talks.length > 0 ? (
               <ul className="mt-6 divide-y divide-ink-700 border-t border-ink-700">
                 {talks.map((talk) => (

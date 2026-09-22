@@ -15,7 +15,19 @@ import { PageHeader } from "../../_components/page-header";
 import { Registrations } from "../../_components/registrations";
 import { EventStatusBadge } from "../../_components/status-badge";
 import { TerminalBadge } from "../../_components/terminal-badge";
-import { getEventForEdit, listAudit, listRegistrations } from "../../_lib/queries";
+import {
+  getEventForEdit,
+  getEventProgramme,
+  getEventSponsors,
+  listAudit,
+  listRegistrations,
+  listSpeakers,
+  listSponsors,
+  listVenues,
+} from "../../_lib/queries";
+import { SessionEditor } from "../../_components/session-editor";
+import { SponsorPicker } from "../../_components/sponsor-picker";
+import { VenuePicker } from "../../_components/venue-picker";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -30,12 +42,18 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function AdminEventPage({ params, searchParams }: Props) {
   const [{ id }, { created }] = await Promise.all([params, searchParams]);
-  const [event, registrations, history, member] = await Promise.all([
-    getEventForEdit(id),
-    listRegistrations(id),
-    listAudit({ eventId: id, take: 30 }),
-    getCurrentMember(),
-  ]);
+  const [event, registrations, history, member, sessions, speakers, venues, sponsors, eventSponsors] =
+    await Promise.all([
+      getEventForEdit(id),
+      listRegistrations(id),
+      listAudit({ eventId: id, take: 30 }),
+      getCurrentMember(),
+      getEventProgramme(id),
+      listSpeakers(),
+      listVenues(),
+      listSponsors(),
+      getEventSponsors(id),
+    ]);
   if (!event) notFound();
 
   const values: EventFormValues = {
@@ -99,6 +117,61 @@ export default async function AdminEventPage({ params, searchParams }: Props) {
       </Container>
 
       <Container className="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+        <div className="min-w-0 space-y-12">
+        <section aria-labelledby="programme-heading">
+          <h2 id="programme-heading" className="font-display text-xl font-bold">
+            Programma
+          </h2>
+          <p className="mt-1 text-xs text-paper-faint">
+            Sessies in volgorde. Tijden zijn optioneel; zonder tijd toont de site alleen de volgorde.
+          </p>
+          <div className="mt-4">
+            <SessionEditor
+              eventId={event.id}
+              speakers={speakers.map((speaker) => ({ id: speaker.id, name: speaker.name }))}
+              sessions={sessions.map((session) => ({
+                id: session.id,
+                title: session.title,
+                abstract: session.abstract,
+                startsAt: session.startsAt ? utcToAmsterdamLocal(session.startsAt) : "",
+                endsAt: session.endsAt ? utcToAmsterdamLocal(session.endsAt) : "",
+                room: session.room,
+                slidesUrl: session.slidesUrl,
+                recordingUrl: session.recordingUrl,
+                speakerIds: session.speakers.map((entry) => entry.speakerId),
+                speakerNames: session.speakers.map((entry) => entry.speaker.name),
+              }))}
+            />
+          </div>
+
+          <div className="mt-10 grid gap-6 sm:grid-cols-2">
+            <div className="panel p-4 sm:p-5">
+              <VenuePicker
+                eventId={event.id}
+                current={event.venueId}
+                venues={venues.map((venue) => ({ id: venue.id, name: venue.name, city: venue.city }))}
+              />
+            </div>
+            <div className="panel p-4 sm:p-5">
+              <h3 className="text-sm font-medium">Sponsors</h3>
+              <div className="mt-3">
+                <SponsorPicker
+                  eventId={event.id}
+                  sponsors={sponsors.map((sponsor) => {
+                    const link = eventSponsors.find((row) => row.sponsorId === sponsor.id);
+                    return {
+                      sponsorId: sponsor.id,
+                      name: sponsor.name,
+                      role: link?.role ?? "",
+                      on: Boolean(link),
+                    };
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section aria-labelledby="edit-heading">
           <h2 id="edit-heading" className="font-display text-xl font-bold">
             Gegevens
@@ -107,6 +180,7 @@ export default async function AdminEventPage({ params, searchParams }: Props) {
             <EventForm action={updateEventAction} values={values} eventId={event.id} submitLabel="Opslaan" />
           </div>
         </section>
+        </div>
 
         <div className="space-y-10">
           <section aria-labelledby="rsvp-heading" className="panel p-4 sm:p-5">

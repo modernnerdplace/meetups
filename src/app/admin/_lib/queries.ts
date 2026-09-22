@@ -183,3 +183,67 @@ export function listAudit(options: { take?: number; eventId?: string } = {}) {
 }
 
 export type AuditRow = Awaited<ReturnType<typeof listAudit>>[number];
+
+// ---------------------------------------------------------------- programma
+
+export function getEventProgramme(eventId: string) {
+  return prisma.eventSession.findMany({
+    where: { eventId },
+    orderBy: { position: "asc" },
+    include: {
+      speakers: {
+        orderBy: { position: "asc" },
+        include: { speaker: { select: { id: true, name: true, slug: true } } },
+      },
+    },
+  });
+}
+
+export type ProgrammeSession = Awaited<ReturnType<typeof getEventProgramme>>[number];
+
+export function listSpeakers() {
+  return prisma.speaker.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      member: { select: { id: true, name: true } },
+      _count: { select: { sessions: true } },
+    },
+  });
+}
+
+export type SpeakerRow = Awaited<ReturnType<typeof listSpeakers>>[number];
+
+export function listVenues() {
+  return prisma.venue.findMany({
+    orderBy: { name: "asc" },
+    include: { _count: { select: { events: true } } },
+  });
+}
+
+export type VenueRow = Awaited<ReturnType<typeof listVenues>>[number];
+
+export function listSponsors() {
+  return prisma.sponsor.findMany({
+    orderBy: { name: "asc" },
+    include: { _count: { select: { events: true } } },
+  });
+}
+
+export type SponsorRow = Awaited<ReturnType<typeof listSponsors>>[number];
+
+export function getEventSponsors(eventId: string) {
+  return prisma.eventSponsor.findMany({
+    where: { eventId },
+    orderBy: { position: "asc" },
+    include: { sponsor: { select: { id: true, name: true } } },
+  });
+}
+
+/** Leden die aan een spreker gekoppeld kunnen worden. */
+export function listMembersForSpeaker() {
+  return prisma.member.findMany({
+    orderBy: { name: "asc" },
+    take: 300,
+    select: { id: true, name: true, speaker: { select: { id: true } } },
+  });
+}

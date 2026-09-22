@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { getCurrentMember } from "@/lib/auth";
 import { getRsvpState } from "@/lib/rsvp";
 
-import { formatLongDate, formatTimeRange, isoDate } from "../../_lib/format";
+import { formatLongDate, formatTime, formatTimeRange, isoDate } from "../../_lib/format";
 import { markdownToText } from "../../_lib/markdown";
 import { countGoing, getEventBySlug } from "../../_lib/queries";
 import { site } from "../../_lib/site";
@@ -91,37 +91,49 @@ export default async function EventPage({ params }: Props) {
         <div className="min-w-0">
           {event.description ? <Markdown source={event.description} /> : null}
 
-          {event.talks.length > 0 ? (
+          {event.sessions.length > 0 ? (
             <section className="mt-14">
               <h2 className="font-display text-2xl font-bold">Programma</h2>
               <ol className="mt-6 space-y-8">
-                {event.talks.map((talk, index) => (
-                  <li key={talk.id} className="flex gap-5">
-                    <span className="mt-1 w-6 shrink-0 font-mono text-sm text-paper-faint tabular-nums">
-                      {String(index + 1).padStart(2, "0")}
+                {event.sessions.map((session, index) => (
+                  <li key={session.id} className="flex gap-5">
+                    <span className="mt-1 w-14 shrink-0 font-mono text-sm text-paper-faint tabular-nums">
+                      {session.startsAt ? formatTime(session.startsAt) : String(index + 1).padStart(2, "0")}
                     </span>
                     <div className="min-w-0">
                       <h3 className="font-display text-lg font-bold leading-snug sm:text-xl">
-                        {talk.title}
+                        {session.title}
                       </h3>
-                      {talk.speaker ? (
+                      {session.speakers.length > 0 ? (
                         <p className="mt-1 text-paper-muted">
-                          <Link
-                            href={`/speakers/${talk.speaker.slug}`}
-                            className="link-underline text-paper"
-                          >
-                            {talk.speaker.name}
-                          </Link>
+                          {session.speakers.map((entry, i) => (
+                            <span key={entry.speakerId}>
+                              {i > 0 ? " en " : null}
+                              <Link
+                                href={`/speakers/${entry.speaker.slug}`}
+                                className="link-underline text-paper"
+                              >
+                                {entry.speaker.name}
+                              </Link>
+                            </span>
+                          ))}
                         </p>
                       ) : null}
-                      {talk.abstract ? (
-                        <p className="mt-2.5 leading-relaxed text-paper-muted">{talk.abstract}</p>
+                      {session.room || session.endsAt ? (
+                        <p className="mt-1 font-mono text-xs text-paper-faint">
+                          {session.endsAt ? `tot ${formatTime(session.endsAt)}` : null}
+                          {session.room && session.endsAt ? " · " : null}
+                          {session.room}
+                        </p>
                       ) : null}
-                      {talk.slidesUrl || talk.recordingUrl ? (
+                      {session.abstract ? (
+                        <p className="mt-2.5 leading-relaxed text-paper-muted">{session.abstract}</p>
+                      ) : null}
+                      {session.slidesUrl || session.recordingUrl ? (
                         <p className="mt-3 flex flex-wrap gap-x-4 font-mono text-xs">
-                          {talk.slidesUrl ? (
+                          {session.slidesUrl ? (
                             <a
-                              href={talk.slidesUrl}
+                              href={session.slidesUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-trace-300 hover:underline"
@@ -129,9 +141,9 @@ export default async function EventPage({ params }: Props) {
                               Slides
                             </a>
                           ) : null}
-                          {talk.recordingUrl ? (
+                          {session.recordingUrl ? (
                             <a
-                              href={talk.recordingUrl}
+                              href={session.recordingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-trace-300 hover:underline"
@@ -145,6 +157,38 @@ export default async function EventPage({ params }: Props) {
                   </li>
                 ))}
               </ol>
+            </section>
+          ) : null}
+
+          {event.sponsors.length > 0 ? (
+            <section className="mt-14">
+              <h2 className="kicker">Mede mogelijk gemaakt door</h2>
+              <ul className="mt-4 flex flex-wrap gap-3">
+                {event.sponsors.map(({ sponsor, role }) => {
+                  const inner = (
+                    <>
+                      <span className="font-medium">{sponsor.name}</span>
+                      {role ? <span className="ml-2 text-xs text-paper-faint">{role}</span> : null}
+                    </>
+                  );
+                  return (
+                    <li key={sponsor.id}>
+                      {sponsor.url ? (
+                        <a
+                          href={sponsor.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="panel inline-flex items-center px-4 py-2.5 transition-colors hover:border-trace/60"
+                        >
+                          {inner}
+                        </a>
+                      ) : (
+                        <span className="panel inline-flex items-center px-4 py-2.5">{inner}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             </section>
           ) : null}
         </div>

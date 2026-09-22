@@ -8,6 +8,9 @@ const items = [
   { href: "/admin", label: "Dashboard", exact: true },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/members", label: "Leden" },
+  { href: "/admin/speakers", label: "Sprekers" },
+  { href: "/admin/venues", label: "Locaties" },
+  { href: "/admin/sponsors", label: "Sponsors" },
   { href: "/admin/audit", label: "Auditlog" },
 ];
 

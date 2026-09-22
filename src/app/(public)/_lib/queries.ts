@@ -63,9 +63,19 @@ export function getEventBySlug(slug: string) {
   return db.event.findFirst({
     where: { slug, status: visibleStatus },
     include: {
-      talks: {
+      venue: true,
+      sponsors: {
         orderBy: { position: "asc" },
-        include: { speaker: { select: { slug: true, name: true, avatarUrl: true } } },
+        include: { sponsor: true },
+      },
+      sessions: {
+        orderBy: { position: "asc" },
+        include: {
+          speakers: {
+            orderBy: { position: "asc" },
+            include: { speaker: { select: { slug: true, name: true, avatarUrl: true } } },
+          },
+        },
       },
     },
   });
@@ -79,10 +89,14 @@ export function getSpeakerBySlug(slug: string) {
   return db.speaker.findUnique({
     where: { slug },
     include: {
-      talks: {
+      sessions: {
         include: {
-          event: {
-            select: { slug: true, title: true, startsAt: true, status: true, recordingUrl: true },
+          session: {
+            include: {
+              event: {
+                select: { slug: true, title: true, startsAt: true, status: true, recordingUrl: true },
+              },
+            },
           },
         },
       },
