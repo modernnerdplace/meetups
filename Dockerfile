@@ -13,7 +13,7 @@
 # `next build` writes no .next/standalone folder and the build below stops with
 # an explicit error.
 
-ARG NODE_IMAGE=node:20.20.2-alpine
+ARG NODE_IMAGE=node:22.23.4-alpine
 
 
 # ── base ──────────────────────────────────────────────────────────────────
