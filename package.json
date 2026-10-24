@@ -20,7 +20,7 @@
     "check:programme": "tsx src/lib/__checks__/programme.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.10.1",
     "clsx": "^2.1.1",
     "ical-generator": "^7.2.0",
     "lucide-react": "^0.468.0",
