@@ -23,7 +23,7 @@
     "@prisma/client": "^5.22.0",
     "clsx": "^2.1.1",
     "ical-generator": "^7.2.0",
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^1.69.0",
     "next": "^15.1.2",
     "nodemailer": "^10.3.1",
     "react": "^19.3.1",
